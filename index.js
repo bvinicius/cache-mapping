@@ -1,10 +1,16 @@
 const fs = require('fs');
 
-
 function possibilities(len) {
     const size = Math.pow(2, len)
     return [...Array(size).keys()].map(e => e.toString(2).padStart(len, "0"))
 }
+
+const hex = fs.readFileSync('bin.txt').toString()
+    .split('\n')
+    .map(e => parseInt(e, 2))
+    .map(e => e.toString(16))
+
+hex.forEach(e => fs.appendFileSync('hex.txt', e + '\n'))
 
 function directMapping(_binfile, _tag, _lines, _words) {
     fs.writeFileSync('gabarito.txt', '')
@@ -27,7 +33,7 @@ function directMapping(_binfile, _tag, _lines, _words) {
         
         if (lineTag) {
             if (lineTag == addressTag) {
-                if (struct[line].data.includes(e)) {
+                if (struct[line].data.map(e => e.slice(0, 15)).includes(e.slice(0, 15))) {
                     fs.appendFileSync('gabarito.txt', 'H\n')
                     hit ++
                 } else {
@@ -49,7 +55,7 @@ function directMapping(_binfile, _tag, _lines, _words) {
             struct[line].tag = addressTag
         }
     })
-
+    
     return {
         miss: miss,
         hit: hit,
@@ -57,5 +63,11 @@ function directMapping(_binfile, _tag, _lines, _words) {
     }
 }
 
-const result = directMapping('bin.txt', 9, 3, 3)
+function associativeMapping(_tag, _word) {
+
+}
+
+const result = directMapping('bin.txt', 9, 4, 2)
 fs.writeFileSync('resultado.txt', (JSON.stringify(result)))
+
+fs.writeFileSync('hex', possibilities(4).map(e => e.toString()))
