@@ -63,11 +63,62 @@ function directMapping(_binfile, _tag, _lines, _words) {
     }
 }
 
-function associativeMapping(_tag, _word) {
+function associativeMapping(_binfile, _rows, _tag, _words) {
+    let hit = 0
+    let miss = 0
+    const bin = fs.readFileSync(_binfile).toString().split('\n')
+    let cache = []
 
+    fs.writeFileSync('gabarito.txt', '')
+
+    for(let i = 0; i < _rows; i ++) {
+        cache.push({
+            tag: '',
+            data: []
+        })
+    }
+
+    // console.log('cache', cache[0])
+    let count = 0
+
+    bin.forEach(e => {
+        const addressTag = e.slice(0, _tag)
+        const tags = cache.map(e => e.tag)
+
+        if (tags.includes(addressTag)) {
+            const index = tags.indexOf(addressTag)
+            const data = cache[index].data
+            if (data.map(e => e.slice(0, 15).includes(e.slice(0, 15)))) {
+                fs.appendFileSync('gabarito.txt', 'H\n')
+                hit ++
+            } else {
+                miss ++
+                fs.appendFileSync('gabarito.txt', 'M\n')
+                cache[count].tag = addressTag
+                cache[count].data = possibilities(_words).map(w => addressTag.concat(w).concat('0'))
+                count ++
+                if (count == _rows) count = 0
+            }
+        } else {
+            miss ++
+            fs.appendFileSync('gabarito.txt', 'M\n')
+            cache[count].tag = addressTag
+            cache[count].data = possibilities(_words).map(w => addressTag.concat(w).concat('0'))
+            count ++
+            if (count >= _rows) count = 0
+        }
+
+    })
+
+    return {
+        miss: miss,
+        hit: hit,
+        total: miss + hit
+    }
 }
 
-const result = directMapping('bin.txt', 9, 4, 2)
+const result = associativeMapping('bin.txt', 16, 13, 2)
+console.log(result)
 fs.writeFileSync('resultado.txt', (JSON.stringify(result)))
 
-fs.writeFileSync('hex', possibilities(4).map(e => e.toString()))
+// fs.writeFileSync('hex', possibilities(4).map(e => e.toString()))
